@@ -1,0 +1,4 @@
+base_path: 
+filename_format: '%Y%m%d.md'
+template_path: 
+use_template: true
