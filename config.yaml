@@ -1,5 +1,5 @@
-base_path: F:/每日流水账
+base_path: 
 filename_format: '%Y%m%d.md'
 stopwords_path: stopwords.txt
-template_path: E:/Documents/myfile/project/MyDiaryManager/templates/default.md
+template_path: 
 use_template: true
