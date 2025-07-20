@@ -8,7 +8,13 @@ import matplotlib.pyplot as plt
 import yaml
 import altair as alt
 
-#todo 长图保存，生成pdf，接入ai
+plt.rcParams['figure.dpi'] = 200
+plt.rcParams['font.sans-serif'] = ['SimHei']
+plt.rcParams['axes.unicode_minus'] = False
+
+# todo 长图保存，生成pdf，接入ai
+# todo 创建一个font文件夹，把字体文件存进去，代码里写相对路径
+# todo 直接把字体路径（配置），也集成到config.yaml里
 
 CONFIG_PATH = "config.yaml"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
