@@ -5,6 +5,7 @@ import re
 import jieba
 import pandas as pd
 
+
 def tokenize_text(text):
     # 1. 先用正则匹配所有英文单词和网址，暂时抽取出来
     # 匹配网址：https:// 或 http://开头，非空白字符直到空格
@@ -29,6 +30,7 @@ def tokenize_text(text):
 
     return tokens
 
+
 def load_stopwords(stopwords_path=None):
     if not stopwords_path:
         stopwords_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stopwords.txt")
@@ -38,6 +40,7 @@ def load_stopwords(stopwords_path=None):
     with open(stopwords_path, 'r', encoding='utf-8') as f:
         stopwords = set(word.strip() for word in f if word.strip())
     return stopwords
+
 
 def add_stopwords(new_words, stopwords_path=None):
     """
@@ -61,6 +64,7 @@ def add_stopwords(new_words, stopwords_path=None):
             f.write(word + '\n')
 
     return len(new_words - current_stopwords), len(updated_stopwords)
+
 
 def extract_date_from_path(dirpath, filename, root_path):
     """
@@ -87,6 +91,26 @@ def extract_date_from_path(dirpath, filename, root_path):
         return date(year, month, day)
     except Exception:
         return None
+
+
+def clean_markdown_text(markdown_text):
+    # 删除所有 HTML 标签
+    markdown_text = re.sub(r'<[^>]+>', '', markdown_text)
+
+    # 删除 Markdown 图片语法 ![alt](url)
+    markdown_text = re.sub(r'!\[.*?\]\(.*?\)', '', markdown_text)
+
+    # 删除 Markdown 超链接语法 [text](https://xxx)，保留 text
+    markdown_text = re.sub(r'\[([^\]]+)\]\(https?://[^\)]+\)', r'\1', markdown_text)
+
+    # 删除裸露的 https 链接
+    markdown_text = re.sub(r'https?://[^\s\)]+', '', markdown_text)
+
+    # 清除多余空行（3行及以上 → 2行）
+    markdown_text = re.sub(r'\n{3,}', '\n\n', markdown_text)
+
+    return markdown_text.strip()
+
 
 def collect_diary_data(root_path, stopwords_path=None, start_date=None, end_date=None):
     """
@@ -125,17 +149,19 @@ def collect_diary_data(root_path, stopwords_path=None, start_date=None, end_date
             filepath = os.path.join(dirpath, filename)
             try:
                 with open(filepath, 'r', encoding='utf-8') as f:
-                    content = f.read()
+                    # 读取markdown
+                    content = clean_markdown_text(f.read())
+
             except Exception:
                 continue
 
             char_count = len(content)
-            #增加英文词语
+            # 增加英文词语
             import re
 
             def tokenize_text(text):
                 words_cn = [w for w in jieba.cut(text) if w.strip() and len(w) > 1]
-                #words_cn = [w for w in jieba.cut(text) if w.strip()]
+                # words_cn = [w for w in jieba.cut(text) if w.strip()]
                 words_en = re.findall(r'\b[a-zA-Z]+\b', text)
                 return words_cn + words_en
 

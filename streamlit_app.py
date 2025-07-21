@@ -12,27 +12,24 @@ plt.rcParams['figure.dpi'] = 200
 plt.rcParams['font.sans-serif'] = ['SimHei']
 plt.rcParams['axes.unicode_minus'] = False
 
+
 # todo 长图保存，生成pdf，接入ai
 # todo 创建一个font文件夹，把字体文件存进去，代码里写相对路径
 # todo 直接把字体路径（配置），也集成到config.yaml里
 
-CONFIG_PATH = "config.yaml"
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def load_config():
-    config_file = os.path.join(BASE_DIR, CONFIG_PATH)
-    if os.path.exists(CONFIG_PATH):
-        with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+def load_config(config_file):
+    if os.path.exists(config_file):
+        with open(config_file, 'r', encoding='utf-8') as f:
             return yaml.safe_load(f)
     else:
         return {}
 
-config = load_config()
-default_root_path = config.get('base_path', '')
 
 def save_config(config):
     with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
         yaml.dump(config, f, allow_unicode=True)
+
 
 def generate_wordcloud(word_freq):
     freq_dict = dict(word_freq)
@@ -52,6 +49,13 @@ def generate_wordcloud(word_freq):
     ).generate_from_frequencies(freq_dict)
     return wc
 
+
+CONFIG_PATH = "config.yaml"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+config = load_config(CONFIG_PATH)
+default_root_path = config.get('base_path', '')
+
+
 def main():
     st.title("📔 日记统计与词云分析")
     # 初始化 session_state，避免 KeyError
@@ -69,13 +73,12 @@ def main():
         st.session_state['selected_month'] = None
     if 'stopwords_path' not in st.session_state:
         st.session_state['stopwords_path'] = None
-    config = load_config()
+    config = load_config(CONFIG_PATH)
     default_root = config.get('base_path', '')
     default_stopwords = config.get('stopwords_path', '')
 
     # 清除按钮
     # TODO 按钮没用，因为浏览器根本不会保存数据
-
 
     # 根目录输入
     root_path = st.text_input("📁 日记根目录（请粘贴或输入完整路径）", value=default_root, key='root_path')
@@ -143,7 +146,12 @@ def main():
         st.success("配置已保存！")
 
     # 选择筛选模式
-    filter_mode = st.selectbox("筛选模式", ["按日区间", "按月", "按年"], index=["按日区间", "按月", "按年"].index(st.session_state['filter_mode']), key='filter_mode')
+    filter_mode = st.selectbox(
+        "筛选模式",
+        ["按日区间", "按月", "按年"],
+        index=["按日区间", "按月", "按年"].index(st.session_state['filter_mode']),
+        key='filter_mode'
+    )
 
     start_date = None
     end_date = None
@@ -152,7 +160,6 @@ def main():
 
     if 'filter_mode' not in st.session_state:
         st.session_state['filter_mode'] = "按月"
-        col1, col2 = st.columns(2)
         if 'start_date' not in st.session_state:
             st.session_state['start_date'] = date.today()
         if 'end_date' not in st.session_state:
@@ -174,7 +181,8 @@ def main():
             st.stop()
         if 'selected_year' not in st.session_state or st.session_state['selected_year'] not in year_list:
             st.session_state['selected_year'] = year_list[0]
-        selected_year = st.selectbox("选择年份", year_list, index=year_list.index(st.session_state['selected_year']), key='selected_year')
+        selected_year = st.selectbox("选择年份", year_list, index=year_list.index(st.session_state['selected_year']),
+                                     key='selected_year')
 
         month_dir = os.path.join(root_path, str(selected_year))
         month_list = []
@@ -185,7 +193,8 @@ def main():
             st.stop()
         if 'selected_month' not in st.session_state or st.session_state['selected_month'] not in month_list:
             st.session_state['selected_month'] = month_list[0]
-        selected_month = st.selectbox("选择月份", month_list, index=month_list.index(st.session_state['selected_month']), key='selected_month')
+        selected_month = st.selectbox("选择月份", month_list,
+                                      index=month_list.index(st.session_state['selected_month']), key='selected_month')
 
         start_date = date(selected_year, selected_month, 1)
         if selected_month == 12:
@@ -200,7 +209,8 @@ def main():
             st.stop()
         if 'selected_year' not in st.session_state or st.session_state['selected_year'] not in year_list:
             st.session_state['selected_year'] = year_list[0]
-        selected_year = st.selectbox("选择年份", year_list, index=year_list.index(st.session_state['selected_year']), key='selected_year')
+        selected_year = st.selectbox("选择年份", year_list, index=year_list.index(st.session_state['selected_year']),
+                                     key='selected_year')
 
         start_date = date(selected_year, 1, 1)
         end_date = date(selected_year, 12, 31)
@@ -249,7 +259,7 @@ def main():
     if word_freq:
         st.subheader("☁️ 词云图")
         wc = generate_wordcloud(word_freq)
-        fig, ax = plt.subplots(figsize=(10,5))
+        fig, ax = plt.subplots(figsize=(10, 5))
         ax.imshow(wc, interpolation='bilinear')
         ax.axis("off")
         st.pyplot(fig)
@@ -268,7 +278,9 @@ def main():
     with st.expander("🧪 打开对比分析工具", expanded=True):
         st.markdown("选择两个日期区间，系统将对比两个时间段的字数总量与高频词汇变化。")
 
-        compare_filter_mode = st.selectbox("区间筛选模式", ["按日区间", "按月", "按年"], index=["按日区间", "按月", "按年"].index(st.session_state['compare_filter_mode']), key="compare_filter_mode")
+        compare_filter_mode = st.selectbox("区间筛选模式", ["按日区间", "按月", "按年"],
+                                           index=["按日区间", "按月", "按年"].index(
+                                               st.session_state['compare_filter_mode']), key="compare_filter_mode")
 
         def select_date_range(prefix):
             s_date = None
@@ -280,9 +292,11 @@ def main():
                 if f"{prefix}_end_date" not in st.session_state:
                     st.session_state[f"{prefix}_end_date"] = date.today()
                 with col1:
-                    s_date = st.date_input(f"{prefix} - 开始日期", value=st.session_state[f"{prefix}_start_date"], key=f"{prefix}_start_date")
+                    s_date = st.date_input(f"{prefix} - 开始日期", value=st.session_state[f"{prefix}_start_date"],
+                                           key=f"{prefix}_start_date")
                 with col2:
-                    e_date = st.date_input(f"{prefix} - 结束日期", value=st.session_state[f"{prefix}_end_date"], key=f"{prefix}_end_date")
+                    e_date = st.date_input(f"{prefix} - 结束日期", value=st.session_state[f"{prefix}_end_date"],
+                                           key=f"{prefix}_end_date")
                 if s_date > e_date:
                     st.error(f"{prefix}：开始日期不能晚于结束日期")
                     return None, None
@@ -294,7 +308,9 @@ def main():
                     return None, None
                 if f"{prefix}_year" not in st.session_state or st.session_state[f"{prefix}_year"] not in year_list:
                     st.session_state[f"{prefix}_year"] = year_list[0]
-                selected_year = st.selectbox(f"{prefix} - 选择年份", year_list, index=year_list.index(st.session_state[f"{prefix}_year"]), key=f"{prefix}_year")
+                selected_year = st.selectbox(f"{prefix} - 选择年份", year_list,
+                                             index=year_list.index(st.session_state[f"{prefix}_year"]),
+                                             key=f"{prefix}_year")
 
                 month_dir = os.path.join(root_path, str(selected_year))
                 month_list = []
@@ -305,7 +321,9 @@ def main():
                     return None, None
                 if f"{prefix}_month" not in st.session_state or st.session_state[f"{prefix}_month"] not in month_list:
                     st.session_state[f"{prefix}_month"] = month_list[0]
-                selected_month = st.selectbox(f"{prefix} - 选择月份", month_list, index=month_list.index(st.session_state[f"{prefix}_month"]), key=f"{prefix}_month")
+                selected_month = st.selectbox(f"{prefix} - 选择月份", month_list,
+                                              index=month_list.index(st.session_state[f"{prefix}_month"]),
+                                              key=f"{prefix}_month")
 
                 s_date = date(selected_year, selected_month, 1)
                 if selected_month == 12:
@@ -320,7 +338,9 @@ def main():
                     return None, None
                 if f"{prefix}_year" not in st.session_state or st.session_state[f"{prefix}_year"] not in year_list:
                     st.session_state[f"{prefix}_year"] = year_list[0]
-                selected_year = st.selectbox(f"{prefix} - 选择年份", year_list, index=year_list.index(st.session_state[f"{prefix}_year"]), key=f"{prefix}_year")
+                selected_year = st.selectbox(f"{prefix} - 选择年份", year_list,
+                                             index=year_list.index(st.session_state[f"{prefix}_year"]),
+                                             key=f"{prefix}_year")
 
                 s_date = date(selected_year, 1, 1)
                 e_date = date(selected_year, 12, 31)
@@ -433,6 +453,7 @@ def main():
             compare_path = os.path.join(compare_dir, f"compare_wordclouds_{timestamp}.png")
             fig.savefig(compare_path, bbox_inches='tight')
             st.markdown(f"[📥 下载词云对比图]({compare_path})")
+
 
 if __name__ == "__main__":
     main()

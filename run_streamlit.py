@@ -16,6 +16,7 @@ def wait_for_port(port, host='localhost', timeout=15):
             time.sleep(0.5)
     return False
 
+
 def run_streamlit(app_path, port=8501):
     url = f"http://localhost:{port}"
     proc = subprocess.Popen([
@@ -28,6 +29,7 @@ def run_streamlit(app_path, port=8501):
     else:
         print(f"Timeout: {port}端口未开启，无法打开浏览器。")
     proc.wait()
+
 
 if __name__ == "__main__":
     app_file = os.path.join(os.path.dirname(__file__), "streamlit_app.py")
